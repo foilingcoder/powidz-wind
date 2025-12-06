@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warunki Wiatrowe Powidz</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="dashboard">
+        <header>
+            <h1>Powidz Wind</h1>
+
+            <div class="unit-toggle-container">
+                <div class="unit-toggle" id="unitToggle" onclick="toggleUnit()">
+                    <div class="toggle-bg"></div>
+                    <div class="toggle-option active" id="opt-kmh">km/h</div>
+                    <div class="toggle-option" id="opt-knots">węzły</div>
+                </div>
+            </div>
+
+            <p id="last-updated">Ładowanie danych...</p>
+        </header>
+
+        <div class="weather-grid">
+            <div class="card">
+                <h2>Prędkość Wiatru</h2>
+                <div class="value-container">
+                    <span id="speed" class="value">--</span><span class="unit">km/h</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Porywy (Gusts)</h2>
+                <div class="value-container">
+                    <span id="gusts" class="value">--</span><span class="unit">km/h</span>
+                </div>
+            </div>
+
+            <div class="card" style="grid-column: 1 / -1"> <!-- Full width -->
+                <h2>Warunki Surfingowe</h2>
+                <div class="surfing-scale-container">
+                    <div class="scale-label">
+                        <span>0</span>
+                        <span>10</span>
+                        <span>20</span>
+                        <span>40 kn</span>
+                    </div>
+                    <div class="scale-bar-wrapper">
+                        <div class="scale-bar"></div> <!-- Gradient handled in CSS -->
+                        <div class="marker" id="gauge-marker" style="left: 0%"></div>
+                    </div>
+                    <div id="scale-status-text" class="scale-status">--</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Kierunek</h2>
+                <div class="wind-direction-display">
+                    <div class="compass">
+                        <div id="arrow" class="arrow">↑</div>
+                    </div>
+                    <div class="value-container">
+                        <span id="direction-text" class="value" style="font-size: 1.5rem">--</span>
+                    </div>
+                    <small id="direction-deg" style="color: var(--text-secondary)">--°</small>
+                </div>
+            </div>
+        </div>
+
+        <button class="refresh-btn" onclick="fetchWeather()">
+            <span id="btn-text">Odśwież</span>
+            <span id="loader" class="loader"></span>
+        </button>
+    </div>
+
+    <script>
+        const LAT = 52.4136;
+        const LON = 17.9193;
+        const API_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kmh`;
+
+        const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+
+        let currentData = {
+            speed: 0,
+            gusts: 0
+        };
+        let currentUnit = 'kmh'; // or 'knots'
+
+        function getCardinal(angle) {
+            const index = Math.round(angle / 45) % 8;
+            return dirs[index];
+        }
+
+        function toKnots(kmh) {
+            return kmh * 0.539957;
+        }
+
+        function toggleUnit() {
+            currentUnit = currentUnit === 'kmh' ? 'knots' : 'kmh';
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            // Toggle UI
+            const toggle = document.getElementById('unitToggle');
+            const optKmh = document.getElementById('opt-kmh');
+            const optKnots = document.getElementById('opt-knots');
+
+            if (currentUnit === 'knots') {
+                toggle.setAttribute('data-unit', 'knots');
+                optKmh.classList.remove('active');
+                optKnots.classList.add('active');
+            } else {
+                toggle.removeAttribute('data-unit');
+                optKmh.classList.add('active');
+                optKnots.classList.remove('active');
+            }
+
+            // Values
+            const unitLabel = currentUnit === 'knots' ? 'kn' : 'km/h'; // 'kn' usually for knots display
+
+            let displaySpeed = currentData.speed;
+            let displayGusts = currentData.gusts;
+
+            if (currentUnit === 'knots') {
+                displaySpeed = toKnots(currentData.speed);
+                displayGusts = toKnots(currentData.gusts);
+            }
+
+            document.getElementById('speed').textContent = displaySpeed.toFixed(1);
+            document.querySelector('#speed + .unit').textContent = unitLabel;
+
+            document.getElementById('gusts').textContent = displayGusts.toFixed(1);
+            document.querySelector('#gusts + .unit').textContent = unitLabel;
+
+            // Gauge Update (Always based on Knots)
+            updateGauge(currentData.speed);
+        }
+
+        function updateGauge(speedKmh) {
+            const speedKnots = toKnots(speedKmh);
+            const maxScale = 40; // Max visual scale
+
+            let percent = (speedKnots / maxScale) * 100;
+            if (percent > 100) percent = 100;
+            if (percent < 0) percent = 0;
+
+            document.getElementById('gauge-marker').style.left = `${percent}%`;
+
+            const statusText = document.getElementById('scale-status-text');
+            statusText.className = 'scale-status';
+
+            if (speedKnots < 10) {
+                statusText.textContent = "Za słaby wiatr";
+                statusText.classList.add('status-low');
+            } else if (speedKnots >= 10 && speedKnots <= 20) {
+                statusText.textContent = "IDEALNE WARUNKI!";
+                statusText.classList.add('status-good');
+            } else {
+                statusText.textContent = "Silny wiatr / Ostrzeżenie";
+                statusText.classList.add('status-high');
+            }
+        }
+
+        async function fetchWeather() {
+            const btnText = document.getElementById('btn-text');
+            const loader = document.getElementById('loader');
+
+            btnText.style.display = 'none';
+            loader.style.display = 'inline-block';
+
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const data = await response.json();
+                const current = data.current;
+
+                // Store raw data (km/h)
+                currentData.speed = current.wind_speed_10m;
+                currentData.gusts = current.wind_gusts_10m;
+
+                // Direction
+                const deg = current.wind_direction_10m;
+                const cardinal = getCardinal(deg);
+
+                document.getElementById('direction-text').textContent = cardinal;
+                document.getElementById('direction-deg').textContent = `${deg}°`;
+                document.getElementById('arrow').style.transform = `rotate(${deg}deg)`;
+
+                // Timestamp
+                const now = new Date();
+                document.getElementById('last-updated').textContent = `Aktualizacja: ${now.toLocaleTimeString()}`;
+
+                // Update all numbers and gauge
+                updateDisplay();
+
+            } catch (error) {
+                console.error('Błąd:', error);
+                document.getElementById('last-updated').textContent = 'Błąd pobierania danych';
+            } finally {
+                btnText.style.display = 'inline';
+                loader.style.display = 'none';
+            }
+        }
+
+        // Initial fetch
+        fetchWeather();
+    </script>
+</body>
+
+</html>

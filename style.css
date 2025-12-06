@@ -1,0 +1,332 @@
+:root {
+    --bg-gradient-start: #0f172a;
+    --bg-gradient-end: #1e293b;
+    --card-bg: rgba(255, 255, 255, 0.1);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --accent-color: #38bdf8;
+    --accent-glow: rgba(56, 189, 248, 0.5);
+    --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    overflow-x: hidden;
+}
+
+.dashboard {
+    width: 100%;
+    max-width: 500px;
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 20px var(--accent-glow);
+}
+
+header p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+}
+
+.weather-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.card {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.card h2 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--accent-color);
+}
+
+.unit {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-left: 4px;
+}
+
+.wind-direction-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.compass {
+    width: 60px;
+    height: 60px;
+    border: 2px solid var(--text-secondary);
+    border-radius: 50%;
+    position: relative;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.arrow {
+    font-size: 2rem;
+    color: var(--accent-color);
+    transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-origin: center;
+    /* Default points UP (North). Rotation will be applied via inline style style */
+}
+
+.refresh-btn {
+    margin-top: 30px;
+    background: var(--accent-color);
+    color: var(--bg-gradient-start);
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.refresh-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px var(--accent-glow);
+}
+
+.refresh-btn:active {
+    transform: scale(0.95);
+}
+
+.loader {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, .3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    display: none;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Surfing Gauge & Toggle */
+.unit-toggle-container {
+    margin-bottom: 20px;
+}
+
+.unit-toggle {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+    padding: 4px;
+    display: inline-flex;
+    position: relative;
+    cursor: pointer;
+}
+
+.toggle-option {
+    padding: 6px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    z-index: 1;
+    transition: color 0.3s;
+}
+
+.toggle-option.active {
+    color: white;
+}
+
+.toggle-bg {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    height: calc(100% - 8px);
+    width: 50%;
+    background: var(--accent-color);
+    border-radius: 99px;
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.toggle-right .toggle-bg {
+    transform: translateX(calc(100% - 8px));
+    /* adjust for padding */
+}
+
+/* Fix logic in JS: simpler to easier target left/right via separate classes or calc */
+/* Actually better implementation: */
+.toggle-option {
+    flex: 1;
+    text-align: center;
+}
+
+.unit-toggle[data-unit="knots"] .toggle-bg {
+    transform: translateX(100%);
+}
+
+/* We will do fixed width for simplicity or just use 50% assumption if two options */
+
+/* Gauge */
+.surfing-scale-container {
+    margin-top: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.scale-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.scale-bar-wrapper {
+    position: relative;
+    height: 24px;
+    margin: 10px 0;
+}
+
+.scale-bar {
+    width: 100%;
+    height: 10px;
+    background: linear-gradient(to right,
+            #94a3b8 0%,
+            #94a3b8 25%,
+            /* 0-10 knots: Low */
+            #22c55e 25%,
+            /* 10 knots start */
+            #22c55e 50%,
+            /* 20 knots end (assuming max 40 scale) -> 20/40 = 50% */
+            #eab308 50%,
+            /* 20-30 Warning */
+            #ef4444 75%
+            /* 30+ Danger */
+        );
+    border-radius: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    position: absolute;
+}
+
+/* Markers for 10 and 20 knots */
+.scale-tick {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.marker {
+    position: absolute;
+    top: -6px;
+    width: 4px;
+    height: 22px;
+    background: #fff;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    transform: translateX(-50%);
+    transition: left 0.5s ease-out;
+    z-index: 10;
+}
+
+.marker::after {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #fff;
+}
+
+.scale-status {
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 16px;
+    min-height: 1.2em;
+}
+
+.status-good {
+    color: #22c55e;
+    text-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+}
+
+.status-low {
+    color: #94a3b8;
+}
+
+.status-high {
+    color: #eab308;
+}
