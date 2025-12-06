@@ -166,13 +166,14 @@
         function generateArrows() {
             const mapContainer = document.getElementById('windMap');
             // Create a grid of arrows
-            const rows = 8;
-            const cols = 12;
+            const rows = 5;
+            const cols = 8;
 
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
                     const arrow = document.createElement('div');
                     arrow.className = 'map-arrow';
+                    arrow.style.setProperty('--delay', -(Math.random() * 2) + 's');
                     // Position with some padding/randomness or strict grid
                     // Using strict grid for "parallel" look
                     arrow.style.top = (r / rows * 100 + 5) + '%';

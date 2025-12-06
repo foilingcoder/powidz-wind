@@ -352,17 +352,38 @@ header p {
     position: absolute;
     width: 20px;
     height: 20px;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.7);
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 400;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
     transform-origin: center;
-    transition: transform 1s ease-out;
+    /* transition removed to prevent initial spin */
 }
 
 .map-arrow::before {
     content: '↑';
+    animation: arrowFlow 3s infinite linear;
+    animation-delay: var(--delay, 0s);
+}
+
+@keyframes arrowFlow {
+    0% {
+        transform: translateY(12px);
+        opacity: 0;
+    }
+
+    15% {
+        opacity: 1;
+    }
+
+    85% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-12px);
+        opacity: 0;
+    }
 }
