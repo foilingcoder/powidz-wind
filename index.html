@@ -60,19 +60,13 @@
                 </div>
             </div>
 
-            <div class="card">
-                <h2>Kierunek</h2>
-                <div class="wind-direction-display">
-                    <div class="compass">
-                        <div id="arrow" class="arrow">↑</div>
-                    </div>
-                    <div class="value-container">
-                        <span id="direction-text" class="value" style="font-size: 1.5rem">--</span>
-                    </div>
-                    <small id="direction-deg" style="color: var(--text-secondary)">--°</small>
-                </div>
-            </div>
+
         </div>
+
+        <div class="card map-card">
+            <div class="map-container" id="windMap"></div>
+        </div>
+
 
         <button class="refresh-btn" onclick="fetchWeather()">
             <span id="btn-text">Odśwież</span>
@@ -169,6 +163,26 @@
             }
         }
 
+        function generateArrows() {
+            const mapContainer = document.getElementById('windMap');
+            // Create a grid of arrows
+            const rows = 8;
+            const cols = 12;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'map-arrow';
+                    // Position with some padding/randomness or strict grid
+                    // Using strict grid for "parallel" look
+                    arrow.style.top = (r / rows * 100 + 5) + '%';
+                    arrow.style.left = (c / cols * 100 + 4) + '%';
+                    mapContainer.appendChild(arrow);
+                }
+            }
+        }
+
+
         async function fetchWeather() {
             const btnText = document.getElementById('btn-text');
             const loader = document.getElementById('loader');
@@ -189,11 +203,16 @@
 
                 // Direction
                 const deg = current.wind_direction_10m;
-                const cardinal = getCardinal(deg);
+                // const cardinal = getCardinal(deg); // Not used anymore
 
-                document.getElementById('direction-text').textContent = cardinal;
-                document.getElementById('direction-deg').textContent = `${deg}°`;
-                document.getElementById('arrow').style.transform = `rotate(${deg}deg)`;
+                // Update map arrows
+                // Wind direction is "coming from", so we rotate 180 to show "blowing to"
+                const rotation = deg + 180;
+
+                const mapArrows = document.querySelectorAll('.map-arrow');
+                mapArrows.forEach(arrow => {
+                    arrow.style.transform = `rotate(${rotation}deg)`;
+                });
 
                 // Timestamp
                 const now = new Date();
@@ -212,6 +231,7 @@
         }
 
         // Initial fetch
+        generateArrows();
         fetchWeather();
     </script>
 </body>
